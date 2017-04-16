@@ -1,19 +1,16 @@
 import React from 'react'
 import {connect} from 'react-redux';
-import {v4} from 'uuid';
 import Actions from '../actions/RecipeActions.js';
 import RecipeBoxForm from '../components/RecipeBoxForm.jsx';
+import * as api from '../api/index.js';
 
-const createRecipe = ({name, ingredients}) => ({
-  name: name.trim(),
-  ingredients: ingredients.trim(),
-  id: v4()
-});
 const mapDispatchToProps = (dispatch) => ({
     onSaveRecipe(recipe) {
-      dispatch({
-        type: Actions.RECIPE_CREATE,
-        recipe: createRecipe(recipe)
+      api.addRecipe(recipe).then(response => {
+        dispatch({
+          type: Actions.RECIPE_CREATE,
+          recipe: response
+        });
       });
     }
 });

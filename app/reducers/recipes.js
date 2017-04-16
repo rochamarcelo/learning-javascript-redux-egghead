@@ -1,6 +1,6 @@
 import {combineReducers} from 'redux';
 import Actions from '../actions/RecipeActions.js';
-console.log("actions", Actions);
+
 const byId = (state = {}, action) => {
   switch(action.type) {
     case Actions.RECIPE_RECEIVE:
@@ -49,12 +49,21 @@ const byId = (state = {}, action) => {
 
 const createList = (filter) => {
   const ids = (state = [], action) => {
-    if (action.filter !== filter) {
-        return state;
-    }
     switch (action.type) {
       case Actions.RECIPE_RECEIVE:
+        if (action.filter !== filter) {
+          return state;
+        }
         return action.response.map(recipe => recipe.id);
+      case Actions.RECIPE_CREATE:
+        switch (filter) {
+          case 'liked':
+            return action.recipe.liked ? [...state, action.recipe.id] : state
+          case 'unliked':
+            return !action.recipe.liked ? [...state, action.recipe.id] : state
+          default:
+            return [...state, action.recipe.id];
+        }
       default: 
         return state;
     }

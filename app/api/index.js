@@ -1,3 +1,11 @@
+import {v4} from 'uuid';
+
+const createRecipe = ({name, ingredients}) => ({
+  name: name.trim(),
+  ingredients: ingredients.trim(),
+  id: v4()
+});
+
 const delay = (ms) =>
   new Promise(resolve => setTimeout(resolve, ms));
 const fakeDatabase = {
@@ -37,3 +45,11 @@ export const fetchRecipes = (filter) =>
         throw new Error(`Unknown filter: ${filter}`);
     }
   });
+
+export const addRecipe = (recipe) => {
+  const response = createRecipe(recipe);
+  return delay(500).then(() => {
+    fakeDatabase.recipes.push(response);
+    return response;
+  });
+};

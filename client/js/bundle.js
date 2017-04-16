@@ -12639,6 +12639,20 @@ module.exports = __webpack_require__(174);
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.addRecipe = exports.fetchRecipes = undefined;
+
+var _uuid = __webpack_require__(320);
+
+var createRecipe = function createRecipe(_ref) {
+  var name = _ref.name,
+      ingredients = _ref.ingredients;
+  return {
+    name: name.trim(),
+    ingredients: ingredients.trim(),
+    id: (0, _uuid.v4)()
+  };
+};
+
 var delay = function delay(ms) {
   return new Promise(function (resolve) {
     return setTimeout(resolve, ms);
@@ -12680,6 +12694,14 @@ var fetchRecipes = exports.fetchRecipes = function fetchRecipes(filter) {
       default:
         throw new Error('Unknown filter: ' + filter);
     }
+  });
+};
+
+var addRecipe = exports.addRecipe = function addRecipe(recipe) {
+  var response = createRecipe(recipe);
+  return delay(500).then(function () {
+    fakeDatabase.recipes.push(response);
+    return response;
   });
 };
 
@@ -12914,8 +12936,6 @@ var _react2 = _interopRequireDefault(_react);
 
 var _reactRedux = __webpack_require__(42);
 
-var _uuid = __webpack_require__(320);
-
 var _RecipeActions = __webpack_require__(43);
 
 var _RecipeActions2 = _interopRequireDefault(_RecipeActions);
@@ -12924,23 +12944,22 @@ var _RecipeBoxForm = __webpack_require__(75);
 
 var _RecipeBoxForm2 = _interopRequireDefault(_RecipeBoxForm);
 
+var _index = __webpack_require__(133);
+
+var api = _interopRequireWildcard(_index);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var createRecipe = function createRecipe(_ref) {
-  var name = _ref.name,
-      ingredients = _ref.ingredients;
-  return {
-    name: name.trim(),
-    ingredients: ingredients.trim(),
-    id: (0, _uuid.v4)()
-  };
-};
 var mapDispatchToProps = function mapDispatchToProps(dispatch) {
   return {
     onSaveRecipe: function onSaveRecipe(recipe) {
-      dispatch({
-        type: _RecipeActions2.default.RECIPE_CREATE,
-        recipe: createRecipe(recipe)
+      api.addRecipe(recipe).then(function (response) {
+        dispatch({
+          type: _RecipeActions2.default.RECIPE_CREATE,
+          recipe: response
+        });
       });
     }
   };
@@ -13198,9 +13217,10 @@ var _RecipeActions2 = _interopRequireDefault(_RecipeActions);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-console.log("actions", _RecipeActions2.default);
 var byId = function byId() {
   var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   var action = arguments[1];
@@ -13244,14 +13264,23 @@ var createList = function createList(filter) {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
     var action = arguments[1];
 
-    if (action.filter !== filter) {
-      return state;
-    }
     switch (action.type) {
       case _RecipeActions2.default.RECIPE_RECEIVE:
+        if (action.filter !== filter) {
+          return state;
+        }
         return action.response.map(function (recipe) {
           return recipe.id;
         });
+      case _RecipeActions2.default.RECIPE_CREATE:
+        switch (filter) {
+          case 'liked':
+            return action.recipe.liked ? [].concat(_toConsumableArray(state), [action.recipe.id]) : state;
+          case 'unliked':
+            return !action.recipe.liked ? [].concat(_toConsumableArray(state), [action.recipe.id]) : state;
+          default:
+            return [].concat(_toConsumableArray(state), [action.recipe.id]);
+        }
       default:
         return state;
     }
